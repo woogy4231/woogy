@@ -1,0 +1,366 @@
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+class Computer {
+	int all_com; // 전체 컴퓨터 개수
+	int used_com;	// 사용중인 컴퓨터 개수
+	int seatarr[5][10];	// 좌석 번호
+	string seat_state[5][10]; //좌석 상태(사용중 or   (빈칸)  )
+	string seat_pw[5][10]; // 좌석 사용자의 비밀번호
+	string seat_id[5][10]; // 좌석 사용자의 아이디
+	int stime[5][10]; // 사용 시작 시간
+	int ftime[5][10]; // 사용 종료 시간
+	int mem_price; //회원 요금
+	int nmem_price; // 비회원 요금
+	int total_money; // 총 수입
+public:
+	Computer();  // 생성자
+	int get_leftcom() { return all_com - used_com; } // 사용 가능한 컴퓨터 개수 리턴
+	int get_allcom() { return all_com; } // 전체 컴퓨터 개수 리턴
+	int get_totalMoney() { return total_money; }  // 총 수입 리턴
+	void show(); // 좌석 정보 출력 (좌석 조회) - 일반 사용자용
+	void admin_show();  // 좌석 정보 출력 (좌석 조회) - 관리자용
+	void inout(string g_id, string g_pw); // 입퇴실 선택
+	void use(string g_id, string g_pw);  //입실
+	void empty(int mem); // 퇴실
+};
+Computer::Computer() {
+	all_com = 50; used_com = 0;
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 10; j++) {
+			seatarr[i][j] = i * 10 + (j + 1);
+			seat_state[i][j] = " ";
+			seat_id[i][j] = " ";
+			seat_pw[i][j] = " ";
+		}
+	}
+	mem_price = 1000;
+	nmem_price = 2000;
+	total_money = 0;
+}
+void Computer::show() {
+	cout << "남은 자리 : " << get_leftcom() << " / " << get_allcom() << endl;
+	cout << "-----------------------------------------------------------------------------------\n";
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 10; j++)
+			cout << seatarr[i][j] << "번\t";
+		cout << endl;
+		for (int j = 0; j < 10; j++)
+			cout << seat_state[i][j] << "\t";
+		cout << endl;
+		cout << endl;
+	}
+	cout << "-----------------------------------------------------------------------------------\n";
+}
+void Computer::admin_show() {
+	cout << "남은 자리 : " << get_leftcom() << " / " << get_allcom() << endl;
+	cout << "-----------------------------------------------------------------------------------\n";
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 10; j++)
+			cout << seatarr[i][j] << "번\t";
+		cout << endl;
+		for (int j = 0; j < 10; j++)
+			cout << seat_id[i][j] << "\t";
+		cout << endl;
+		for (int j = 0; j < 10; j++)
+			cout << seat_pw[i][j] << "\t";
+		cout << endl;
+		cout << endl;
+	}
+	cout << "-----------------------------------------------------------------------------------\n";
+}
+void Computer::use(string g_id = "비회원", string g_pw = " ") {
+	show();
+	int num;
+	int flag = 0;
+	while (1) {
+		string npw1, npw2;
+		cout << "원하는 좌석을 선택하세요 >> ";
+		cin >> num;
+		int m = num / 10;
+		int n = num % 10 - 1;
+
+		if (m > 4 || n > 9) {
+			cout << "없는 좌석입니다. 다시 선택하세요." << endl;
+		}
+		else if (seat_state[m][n] == "사용중") {
+			cout << "이미 사용 중인 좌석 입니다. 다른 좌석을 선택해주세요." << endl;
+		}
+		else {
+			cout << "사용 시작 시간을 입력하세요(0시~24시) >> ";
+			int st;
+			cin >> st;
+			stime[m][n] = st;
+			if (g_pw != " ") { // 회원일 때
+				npw1 = g_pw;
+			}
+			else {
+				while (1) {
+					cout << "본인확인을 위한 비밀번호를 입력해주세요(퇴실 시에 사용됩니다.) >> ";
+					cin >> npw1;
+					cout << "비밀번호를 한 번더 입력해주세요 >> ";
+					cin >> npw2;
+					if (npw1 != npw2)
+						cout << "비밀번호가 다릅니다!" << endl;
+					else
+						break;
+				}
+			}
+			seat_id[m][n] = g_id;
+			seat_pw[m][n] = npw1;
+			cout << num << "번 좌석을 " << st << "시 부터사용합니다." << endl << endl;
+			seat_state[m][n] = "사용중";
+			used_com += 1;
+			break;
+		}
+	}
+	show();
+}
+void Computer::empty(int mem) { //mem 1이면 회원, 2이면 비회원
+	int num, ft;
+	while (1) {
+		cout << "사용한 좌석을 선택하세요 >> ";
+		cin >> num;
+		int i = num / 10;
+		int j = num % 10 - 1;
+		if (mem == 2) { // 비회원인 경우
+			cout << "비밀번호를 입력하세요 >> ";
+			string a;
+			cin >> a;
+			if (a != seat_pw[i][j]) {
+				cout << "비밀번호가 다릅니다!" << endl << endl;
+				break;
+			}
+		}
+		cout << "퇴실하는 시간을 입력하세요(0시~24시) >> ";
+		cin >> ft;
+		ftime[i][j] = ft;
+		seat_state[i][j] = " ";
+		seat_pw[i][j] = " ";
+		seat_id[i][j] = " ";
+		used_com -= 1;
+		int pri = 0;
+		int tot_time = (ftime[i][j] - stime[i][j]);
+		if (mem == 1)
+			pri = tot_time * mem_price;
+		else 
+			pri = tot_time * nmem_price;
+		total_money += pri;
+		cout << "총 이용 시간 : " << tot_time << endl;
+		cout << pri << "원을 결제합니다." << endl;
+		cout << "안녕히가세요:)" << endl << endl;
+		break;
+	}
+	show();
+}
+void Computer::inout(string g_id = " ", string g_pw = " ") {
+	int sel;
+	while (1) {
+		cout << "1.입실 2.퇴실 >> ";
+		cin >> sel;
+		if (g_id != " " && g_pw != " ") { //회원
+			if (sel == 1) {
+				use(g_id, g_pw);
+				break;
+			}
+			else if (sel == 2) {
+				empty(1);
+				break;
+			}	
+			else
+				cout << "없는 선택지 입니다. 번호를 다시 선택하세요" << endl;
+		}
+		else { // 비회원
+			if (sel == 1) {
+				use();
+				break;
+			}
+			else if (sel == 2) {
+				empty(2);
+				break;
+			}
+			else
+				cout << "없는 선택지 입니다. 번호를 다시 선택하세요" << endl;
+		}
+	}
+}
+//================================================================================================================ 
+class Person {
+	string id; // 사용자 아이디
+	string pw; // 사용자 비밀번호
+public:
+	Person(); // 생성자
+	string get_id() { return id; } // 사용자 아이디 리턴
+	string get_pw() { return pw; } // 사용자 비밀번호 리턴
+	void change_per(string npw); // 사용자 정보 변경 적용
+};
+Person::Person() {
+	cout << "\t[회원가입]" << endl;
+	string a, b;
+	cout << "아이디 >> ";
+	cin >> a;
+	this->id = a;
+	cout << "비밀번호 >> ";
+	cin >> b;
+	this->pw = b;
+}
+void Person::change_per(string npw) {
+	this->pw = npw;
+}
+//================================================================================================================ 
+class PersonManager {
+	vector <Person> vp; // 회원 목록을 위한 벡터
+public:
+	PersonManager() {} // 생성자
+	void new_per(); // 회원가입
+	void login(Computer& com); // 일반 사용자 로그인
+	void admin(Computer& com);  // 관리자 로그인
+	void show_per(); // 회원 목록 출력
+	void change_pw(); // 회원 정보 수정
+	void delete_per(); // 회원 삭제
+
+};
+void PersonManager::new_per() {
+	Person per;
+	vp.push_back(per);
+	int index = vp.size() - 1;
+	cout << vp[index].get_id() << " 님 회원가입 완료" << endl << endl;
+}
+void PersonManager::login(Computer& com) {
+	cout << "\t[로그인]" << endl;
+	string id, pw;
+	cout << "아이디 >> ";
+	cin >> id;
+	cout << "비밀번호 >> ";
+	cin >> pw;
+	int n = -1;
+	for (int i = 0; i != vp.size(); i++) {
+		if (vp[i].get_id() == id) {
+			n = i;
+			break;
+		}	
+	}
+	if (n == -1) {
+		cout << "존재하지 않는 아이디입니다. 회원가입하세요!" << endl << endl;
+		return;
+	}
+	if (vp[n].get_pw() == pw) { // 로그인 성공
+		cout << vp[n].get_id() << "님" << endl << endl;
+		com.inout(id, pw);
+	}
+	else { // 로그인 실패
+		cout << "로그인에 실패했습니다." << endl << endl;
+	}
+}
+void PersonManager::admin(Computer& com) {
+	string a, b;
+	cout << "관리자 아이디를 입력하세요 >> ";
+	cin >> a;
+	cout << "관리자 비밀번호를 입력하세요 >> ";
+	cin >> b;
+	if (a == "admin"&&b == "admin") {
+		cout << "관리자님 어서오세요!" << endl << endl;
+		while (1) {
+			cout << "1.현황 2.회원 관리 3.관리자 모드 종료 >> ";
+			int s;
+			cin >> s;
+			if (s == 1) { //1.현황
+				cout << "현재 총 수입 : " << com.get_totalMoney() << "원" << endl;
+				com.admin_show();
+			}
+			else if (s == 2) { //2.회원 관리
+				cout << "0.회원 목록 1.비밀번호 변경 2.회원 탈퇴 >> ";
+				int s2;
+				cin >> s2;
+				if (s2 == 0) {
+					show_per();
+				}
+				else if (s2 == 1) { // 비밀번호 변경
+					show_per();
+					change_pw();
+				}
+				else if (s2 == 2) { // 회원 탈퇴
+					show_per();
+					delete_per();
+				}
+				else {
+					cout << "번호를 다시 선택하세요" << endl;
+				}
+			}
+			else if (s == 3) {
+				cout << "관리자 모드를 종료합니다." << endl << endl;
+				break;
+			}
+			else {
+				cout << "번호를 다시 선택하세요" << endl;
+			}
+		}
+	}
+}
+void PersonManager::show_per() {
+	cout << "총 회원 수 : " << vp.size() << endl;
+	for (int i = 0; i != vp.size(); i++) {
+		cout << i + 1 << ". id : " << vp[i].get_id() << "\tpw : " << vp[i].get_pw() << endl;
+	}
+	cout << endl;
+}
+void PersonManager::change_pw() {
+	cout << "비밀번호를 변경할 회원의 아이디를 입력하세요 >> ";
+	string cpid;
+	cin >> cpid;
+	int n = 0;
+	for (int i = 0; i != vp.size(); i++) {
+		if (vp[i].get_id() == cpid) {
+			n = i;
+			break;
+		}
+	}
+	cout << vp[n].get_id() << "님의 새로운 비밀번호를 입력하세요. >> ";
+	string newpw;
+	cin >> newpw;
+	vp[n].change_per(newpw);
+	cout << vp[n].get_id() << "님의 비밀번호가 변경되었습니다." << endl;
+	cout << "id : " << vp[n].get_id() << "\tpw : " << vp[n].get_pw() << endl << endl;
+}
+void PersonManager::delete_per() {
+	cout << "탈퇴할 회원의 아이디를 입력하세요 >> ";
+	string oid;
+	cin >> oid;
+	int n = 0;
+	for (int i = 0; i != vp.size(); i++) {
+		if (vp[i].get_id() == oid) {
+			n = i;
+			break;
+		}
+	}
+	cout << vp[n].get_id() << "님을 탈퇴처리합니다." << endl << endl;
+	vp.erase(vp.begin() + n);
+}
+//================================================================================================================ 
+int main() {
+	Computer com;
+	PersonManager pm;
+	int sel1;
+	while (1) {
+		cout << "0.관리자 1.회원 2.비회원 3.회원가입 4.종료>> ";
+		cin >> sel1;
+		if (sel1 == 0) { // 관리자 모드
+			pm.admin(com);
+		}
+		else if (sel1 == 1) { // 회원 모드
+			pm.login(com);
+		}
+		else if (sel1 == 2) { // 비회원 모드
+			com.inout();
+		}
+		else if (sel1 == 3) { // 회원가입
+			pm.new_per();
+		}
+		else if (sel1 == 4) {
+			return 0;
+		}
+		else
+			cout << "번호를 다시 선택하세요" << endl;
+	}
+}
